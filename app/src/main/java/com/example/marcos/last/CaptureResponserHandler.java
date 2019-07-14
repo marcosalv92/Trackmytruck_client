@@ -22,8 +22,10 @@ public class CaptureResponserHandler extends AsyncHttpResponseHandler {
     @Override
     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
         try {
+
             String msg = new String(responseBody, "UTF-8");
             mostraMensaje(msg);
+
 
 
         } catch (UnsupportedEncodingException e) {

@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -15,18 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-import com.example.marcos.last.BaseDatos;
-import com.example.marcos.last.ListDatos;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import com.example.marcos.last.database.Point_RecordDbHelper;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -77,12 +65,12 @@ public class MainActivity extends ActionBarActivity {
         frec_t = preferences_path.getString("frec_t","false");
 
         if (directory.equals("false")){
-            directory = "www.nojotros.tk/api/newlocation";
+            directory = "www.trackmytruck.tk/api/newlocation";
             SharedPreferences.Editor editor_path = preferences_path.edit();
-            editor_path.putString("path","www.nojotros.tk/api/newlocation");
+            editor_path.putString("path","www.trackmytruck.tk/api/newlocation");
             editor_path.commit();
         }else{
-            directory = preferences_path.getString("path","www.nojotros.tk/api/newlocation");
+            directory = preferences_path.getString("path","www.trackmytruck.tk/api/newlocation");
             ed_path.setText(directory);
 
         }
@@ -135,7 +123,8 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
 
 
-                if (conexion_Stage.equals("RED DISPONIBLE CON INTERNET")) {
+//                if (conexion_Stage.equals("RED DISPONIBLE CON INTERNET")) {
+                if(true){
                     //Toast.makeText(getApplicationContext(), "RED DISPONIBLE CON INTERNET", Toast.LENGTH_LONG).show();
                     client_http = ed_id.getText().toString();
                     SharedPreferences preferences = getSharedPreferences("truck_id",MODE_PRIVATE);
@@ -147,7 +136,7 @@ public class MainActivity extends ActionBarActivity {
                     }
                     directory = ed_path.getText().toString();
                     SharedPreferences preferences_path = getSharedPreferences("path",MODE_PRIVATE);
-                    String directory_store = preferences_path.getString("path","www.nojotros.tk/api/newlocation");
+                    String directory_store = preferences_path.getString("path","www.trackmytruck.tk/api/newlocation");
                     if (directory != directory_store){
                         SharedPreferences.Editor editor_path = preferences_path.edit();
                         editor_path.putString("path",directory);
@@ -211,7 +200,8 @@ public class MainActivity extends ActionBarActivity {
 //                Intent intent = new Intent();
 //                intent.setAction("com.journaldev.CUSTOM_SERVICE");
 //                stopService(intent);
-
+                Point_RecordDbHelper prDb = new Point_RecordDbHelper(getApplicationContext());
+                //prDb.deleteAll();
                 System.exit(0);
             }
 

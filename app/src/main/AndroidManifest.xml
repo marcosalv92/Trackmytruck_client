@@ -45,17 +45,6 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name=".GPS_Service"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-
-                <action android:name="com.journaldev.CUSTOM_SERVICE" />
-
-
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>
