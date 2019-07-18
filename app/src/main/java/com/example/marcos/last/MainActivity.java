@@ -1,29 +1,57 @@
 package com.example.marcos.last;
 
+import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.marcos.last.Dialog.Dialog_NewTrip;
 import com.example.marcos.last.database.Point_RecordDbHelper;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.StringEntity;
 
 
-public class MainActivity extends ActionBarActivity {
-    EditText ed_id, ed_updatetime, ed_updatedist, ed_path, ed_coordinate;
-    Button startgps, stopgps;
+public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.NewTrip_DialogInterface{
+
+    TextView ed_id,ed_truck_id,ed_user_id,ed_name;
+    EditText ed_updatetime, ed_updatedist, ed_path, ed_coordinate;
+    Button startgps, stopgps,bton_newtrip,btnBackground;
     public String conexion_Stage;
-    public String client_http;
+    public String trip_id,user_id,truck_id,ruta_name;
     public String directory;
     public String frec_t,frec_dist;
+    ProgressDialog progressDialog = null;
+//    MyReceiver myReceiver = new MyReceiver();
 
     Truck_GSON truck_GSON = new Truck_GSON();
 //    Gson gson = new Gson();
@@ -32,7 +60,11 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //finish();
-        ed_id = (EditText) findViewById(R.id.editText_id);
+        ed_id = (TextView) findViewById(R.id.textView_id);
+        ed_user_id = (TextView) findViewById(R.id.textViewUser_id);
+        ed_truck_id = (TextView) findViewById(R.id.textViewTruck_id);
+        ed_name = (TextView) findViewById(R.id.textView_name);
+
         ed_updatetime = (EditText) findViewById(R.id.editTextTime);
         ed_updatedist = (EditText) findViewById(R.id.editTextDist);
         ed_path = (EditText) findViewById(R.id.editTextpaht);
@@ -40,22 +72,60 @@ public class MainActivity extends ActionBarActivity {
 
         startgps = (Button) findViewById(R.id.buttonStart);
         stopgps = (Button) findViewById(R.id.buttonStop);
+        bton_newtrip = (Button) findViewById(R.id.button_newtrip);
+        btnBackground = (Button) findViewById(R.id.buttonBackground);
 
 
-        //Almacenar Variables de Entrada truck id
+        //Almacenar Variables de Entrada  trip_id  truck_id user_id
 
-        SharedPreferences preferences = getSharedPreferences("truck_id",MODE_PRIVATE);
-        client_http = preferences.getString("truck_id","false");
-        if (client_http.equals("false")){
-            client_http = "25";
+        SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+        trip_id = preferences.getString("trip_id","false");
+        if (trip_id.equals("false")){
+            trip_id = "25";
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("truck_id","25");
+            editor.putString("trip_id",trip_id);
             editor.commit();
         }else{
-            client_http = preferences.getString("truck_id","25");
-            ed_id.setText(client_http);
+            //trip_id = preferences.getString("trip_id","25");
+            ed_id.setText(trip_id);
 
         }
+
+        user_id = preferences.getString("user_id","false");
+        if (user_id.equals("false")){
+            user_id = "3";
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("user_id",user_id);
+            editor.commit();
+        }else{
+            //user_id = preferences.getString("user_id","3");
+            ed_user_id.setText(user_id);
+
+        }
+
+        truck_id = preferences.getString("truck_id","false");
+        if (truck_id.equals("false")){
+            truck_id = "3";
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("truck_id",truck_id);
+            editor.commit();
+        }else{
+            //truck_id = preferences.getString("truck_id","3");
+            ed_truck_id.setText(truck_id);
+
+        }
+        ruta_name = preferences.getString("ruta_name","false");
+        if (ruta_name.equals("false")){
+            ruta_name = "New Trip";
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("ruta_name",ruta_name);
+            editor.commit();
+        }else{
+            //ruta_name = preferences.getString("ruta_name","New Trip");
+            ed_name.setText(ruta_name);
+
+        }
+
 
         ////Almacenar Variables de Entrada directory, frec_t, frec_dist
 
@@ -70,7 +140,7 @@ public class MainActivity extends ActionBarActivity {
             editor_path.putString("path","www.trackmytruck.tk/api/newlocation");
             editor_path.commit();
         }else{
-            directory = preferences_path.getString("path","www.trackmytruck.tk/api/newlocation");
+            //directory = preferences_path.getString("path","www.trackmytruck.tk/api/newlocation");
             ed_path.setText(directory);
 
         }
@@ -80,7 +150,7 @@ public class MainActivity extends ActionBarActivity {
             editor_dist.putString("frec_dist","10");
             editor_dist.commit();
         }else{
-            frec_dist = preferences_path.getString("frec_dist","10");
+            //frec_dist = preferences_path.getString("frec_dist","10");
             ed_updatedist.setText(frec_dist);
 
         }
@@ -90,7 +160,7 @@ public class MainActivity extends ActionBarActivity {
             editor_time.putString("frec_t","10");
             editor_time.commit();
         }else{
-            frec_t = preferences_path.getString("frec_t","10");
+            //frec_t = preferences_path.getString("frec_t","10");
             ed_updatetime.setText(frec_t);
 
         }
@@ -123,68 +193,59 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
 
 
-//                if (conexion_Stage.equals("RED DISPONIBLE CON INTERNET")) {
-                if(true){
-                    //Toast.makeText(getApplicationContext(), "RED DISPONIBLE CON INTERNET", Toast.LENGTH_LONG).show();
-                    client_http = ed_id.getText().toString();
-                    SharedPreferences preferences = getSharedPreferences("truck_id",MODE_PRIVATE);
-                    String client_store = preferences.getString("truck_id","false");
-                    if (client_http != client_store){
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString("truck_id",client_http);
-                        editor.commit();
-                    }
-                    directory = ed_path.getText().toString();
-                    SharedPreferences preferences_path = getSharedPreferences("path",MODE_PRIVATE);
-                    String directory_store = preferences_path.getString("path","www.trackmytruck.tk/api/newlocation");
-                    if (directory != directory_store){
-                        SharedPreferences.Editor editor_path = preferences_path.edit();
-                        editor_path.putString("path",directory);
-                        editor_path.commit();
-                    }
-                    frec_t = ed_updatetime.getText().toString();
-                    String frectime_store = preferences_path.getString("frec_t","10");
-                    if (frec_t != frectime_store){
-                        SharedPreferences.Editor editor_time = preferences_path.edit();
-                        editor_time.putString("frec_t",frec_t);
-                        editor_time.commit();
+                if (conexion_Stage.equals("RED DISPONIBLE CON INTERNET")) {
+                    if(isLocationEnabled(getApplicationContext())){
+                        updateAllDataActivity(trip_id, user_id, truck_id, ruta_name);
+
+                        if (frec_dist.equals("") || frec_t.equals("")) {
+                            createSimpleDialog("Introduzca intervalo requerido\n Time(s) y Dist(m)").show();
+                            //                        Toast.makeText(getApplicationContext(), "Introduzca intervalo requerido", Toast.LENGTH_LONG).show();
+                        } else {
+                            int intfrecuencia = Integer.parseInt(frec_t);
+                            int intDist = Integer.parseInt(frec_dist);
+                            //                  Intent intent = new Intent();
+                            //                        Context context = getApplicationContext();
+                            //                        Intent intent = new Intent(context,myReceiver.getClass());
+                            //                        intent.putExtra("time", intfrecuencia);
+                            //                        intent.putExtra("dist", intDist);
+                            //                        context.sendBroadcast(intent);
+                            Intent intent = new Intent();
+                            intent.setAction("com.journaldev.CUSTOM_INTENT");
+                            intent.putExtra("time", intfrecuencia);
+                            intent.putExtra("dist", intDist);
+                            //                        intent.putExtra("action","CREATELISTENER");
+                            sendBroadcast(intent);
+
+                            //                        Intent intent = new Intent();
+                            //                        intent.putExtra("time", intfrecuencia);
+                            //                        intent.putExtra("dist", intDist);
+                            //                        intent.setAction("com.journaldev.CUSTOM_SERVICE");
+                            //                        startService(intent);
+                            //                        startService(new Intent(getApplicationContext(), GPS_Service.class));
+
+                            bton_newtrip.setVisibility(View.INVISIBLE);
+                            startgps.setVisibility(View.INVISIBLE);
+                            btnBackground.setVisibility(View.VISIBLE);
+                            stopgps.setVisibility(View.VISIBLE);
+                        }
+                    }else{
+                        createSimpleDialog("GPS INACTIVO \n" +
+                            "\n" +
+                            "ACTIVE GPS!!!").show();
+
                     }
 
-
-
-                    frec_dist = ed_updatedist.getText().toString();
-                    String frecdist_store = preferences_path.getString("frec_dist","10");
-                    if (frec_dist != frecdist_store){
-                        SharedPreferences.Editor editor_dist = preferences_path.edit();
-                        editor_dist.putString("frec_dist",frec_dist);
-                        editor_dist.commit();
-                    }
-
-                    if (frec_dist.equals("") || frec_t.equals("")) {
-                        Toast.makeText(getApplicationContext(), "Introduzca intervalo requerido", Toast.LENGTH_LONG).show();
-                    } else {
-                        int intfrecuencia = Integer.parseInt(frec_t);
-                        int intDist = Integer.parseInt(frec_dist);
-                        //                  Intent intent = new Intent();
-                        Intent intent = new Intent();
-                        intent.setAction("com.journaldev.CUSTOM_INTENT");
-                        intent.putExtra("time", intfrecuencia);
-                        intent.putExtra("dist", intDist);
-                        sendBroadcast(intent);
-//                        Intent intent = new Intent();
-//                        intent.putExtra("time", intfrecuencia);
-//                        intent.putExtra("dist", intDist);
-//                        intent.setAction("com.journaldev.CUSTOM_SERVICE");
-//                        startService(intent);
-//                        startService(new Intent(getApplicationContext(), GPS_Service.class));
-                    }
-                    startgps.setVisibility(View.INVISIBLE);
-                    stopgps.setVisibility(View.VISIBLE);
                 }else if (conexion_Stage.equals("RED DISPONIBLE SIN INTERNET")){
-                    Toast.makeText(getApplicationContext(), "RED DISPONIBLE SIN INTERNET", Toast.LENGTH_LONG).show();
+                    createSimpleDialog("RED DISPONIBLE SIN INTERNET \n" +
+                            "\n" +
+                            "VERIFIQUE CONEXIÓN!!!").show();
+//                    Toast.makeText(getApplicationContext(), "RED DISPONIBLE SIN INTERNET", Toast.LENGTH_LONG).show();
 
                 }else{
-                    Toast.makeText(getApplicationContext(), "RED NO DISPONIBLE", Toast.LENGTH_LONG).show();
+                    createSimpleDialog("RED NO DISPONIBLE\n" +
+                            "\n" +
+                            "VERIFIQUE CONEXIÓN!!!").show();
+//                    Toast.makeText(getApplicationContext(), "RED NO DISPONIBLE ", Toast.LENGTH_LONG).show();
                 }
 
 
@@ -195,23 +256,114 @@ public class MainActivity extends ActionBarActivity {
         stopgps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                bton_newtrip.setVisibility(View.VISIBLE);
                 startgps.setVisibility(View.VISIBLE);
                 stopgps.setVisibility(View.INVISIBLE);
+                btnBackground.setVisibility(View.INVISIBLE);
+//                Point_RecordDbHelper prDb = new Point_RecordDbHelper(getApplicationContext());
+//                prDb.deleteAll();
 //                Intent intent = new Intent();
-//                intent.setAction("com.journaldev.CUSTOM_SERVICE");
-//                stopService(intent);
-                Point_RecordDbHelper prDb = new Point_RecordDbHelper(getApplicationContext());
-                //prDb.deleteAll();
+//                intent.setAction("com.journaldev.CUSTOM_INTENT");
+//                intent.putExtra("action","REMOVELISTENER");
+//                sendBroadcast(intent);
+//                myReceiver.removeAllLocation();
                 System.exit(0);
             }
 
         });
+        btnBackground.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent();
+                i.setAction(Intent.ACTION_MAIN);
+                i.addCategory(Intent.CATEGORY_HOME);
+                startActivity(i);
+            }
+        });
+
+        bton_newtrip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+              Dialog_NewTrip newTrip = new Dialog_NewTrip(ruta_name,user_id,truck_id);
+                newTrip.show(getSupportFragmentManager(),"DialogNewTrip");
+
+            }
+        });
+
+
         Intent intent_ini = new Intent();
         intent_ini.setAction("com.journaldev.CUSTOM_INTENT2");
         sendBroadcast(intent_ini);
+
+
+
+
     }
 
+    private void updateAllDataActivity(String newtrip_id,String newuser_id,String newtruck_id,String newruta_name) {
 
+        //trip_id = ed_id.getText().toString();
+        SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+        String client_store = preferences.getString("trip_id","false");
+        if (newtrip_id != client_store){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("trip_id",newtrip_id);
+            editor.commit();
+            trip_id = newtrip_id;
+        }
+        //user_id = ed_user_id.getText().toString();
+        String user_store = preferences.getString("user_id","false");
+        if (newuser_id != user_store){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("user_id",newuser_id);
+            editor.commit();
+            user_id = newuser_id;
+        }
+
+        //truck_id = ed_truck_id.getText().toString();
+        String truck_store = preferences.getString("truck_id","false");
+        if (newtruck_id != truck_store){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("truck_id",newtruck_id);
+            editor.commit();
+            truck_id = newtruck_id;
+        }
+        //ruta_name = ed_name.getText().toString();
+        String name_store = preferences.getString("ruta_name","false");
+        if (newruta_name != name_store){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("ruta_name",newruta_name);
+            editor.commit();
+            ruta_name = newruta_name;
+        }
+
+        directory = ed_path.getText().toString();
+        SharedPreferences preferences_path = getSharedPreferences("path",MODE_PRIVATE);
+        String directory_store = preferences_path.getString("path","www.trackmytruck.tk/api/newlocation");
+        if (directory != directory_store){
+            SharedPreferences.Editor editor_path = preferences_path.edit();
+            editor_path.putString("path",directory);
+            editor_path.commit();
+        }
+        frec_t = ed_updatetime.getText().toString();
+        String frectime_store = preferences_path.getString("frec_t","10");
+        if (frec_t != frectime_store){
+            SharedPreferences.Editor editor_time = preferences_path.edit();
+            editor_time.putString("frec_t",frec_t);
+            editor_time.commit();
+        }
+
+
+
+        frec_dist = ed_updatedist.getText().toString();
+        String frecdist_store = preferences_path.getString("frec_dist","10");
+        if (frec_dist != frecdist_store){
+            SharedPreferences.Editor editor_dist = preferences_path.edit();
+            editor_dist.putString("frec_dist",frec_dist);
+            editor_dist.commit();
+        }
+    }
 
 
     @Override
@@ -235,30 +387,181 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    public AlertDialog createSimpleDialog(String msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-//    public Boolean isOnlineNet() {
+        builder.setTitle("Información")
+                .setMessage(msg)
+                .setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //listener.onPossitiveButtonClick();
+                            }
+                        });
+
+        return builder.create();
+    }
+
+
+
+
+    @Override
+    public void onPossitiveButtonClick(final String name, final String user, final String truck) {
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+//        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Verificando new trip...");
+        progressDialog.show();
+
+        if (isOnlineNet()) {
+
 //
-//        try {
-//            Process p = java.lang.Runtime.getRuntime().exec("ping -c 1 www.google.es");
-//
-//            int val           = p.waitFor();
-//            boolean reachable = (val == 0);
-//            return reachable;
-//
-//        } catch (Exception e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
-//    private boolean isNetDisponible() {
-//
-//        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-//
-//        NetworkInfo actNetInfo = connectivityManager.getActiveNetworkInfo();
-//
-//        return (actNetInfo != null && actNetInfo.isConnected());
-//    }
+                 AsyncHttpClient client = new AsyncHttpClient();
+                final JSONObject jsonParams = new JSONObject();
+                try {
+                    jsonParams.put("name",name);
+                    jsonParams.put("user_id",user);
+                    jsonParams.put("truck_id",truck);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                StringEntity bodyjson = null;
+                try {
+                    bodyjson = new StringEntity(jsonParams.toString());
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                client.post(getApplicationContext(), "https://www.trackmytruck.tk/api/trips", bodyjson, "application/json", new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        super.onStart();
+
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+//                            progressDialog.dismiss();
+
+                        progressDialog.dismiss();
+//                        JSONArray jarr = null;
+//                        try {
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//                                jarr = new JSONArray(responseBody);
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                        for(int i = 0; i < jarr.length(); ++i) {
+//                            try {
+//                                JSONObject jobj = jarr.getJSONObject(i);
+//                            } catch (JSONException e) {
+//                                e.printStackTrace();
+//                            }
+//                            // do your things...
+//                        }
+                        try {
+                            JSONObject json = new JSONObject(new String(responseBody));
+//                            String new_name = (String) json.get("name");
+//                            String new_user_id = (String) json.get("user_id");
+//                            String new_truck_id = (String) json.get("truck_id");
+//                            String updated_at = (String) json.get("updated_at");
+//                            String created_at = (String) json.get("created_at");
+                            Integer id = (Integer) json.get("id");
+
+                            trip_id = String.valueOf(id);
+
+                            ed_id.setText(trip_id);
+                            ed_user_id.setText(user);
+                            ed_truck_id.setText(truck);
+                            ed_name.setText(name);
+
+
+                            updateAllDataActivity(trip_id,user,truck,name);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Toast.makeText(getApplicationContext(),"Nuevo viaje creado:"+name, Toast.LENGTH_LONG).show();
+
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),"Falló conexion con el servidor...verifique conexión", Toast.LENGTH_LONG).show();
+                        Dialog_NewTrip newTrip = new Dialog_NewTrip(name,user,truck);
+                        newTrip.show(getSupportFragmentManager(),"DialogTRYNewTrip");
+//                            progressDialog.dismiss();
+
+
+                    }
+
+
+                });
+        }else{
+
+            progressDialog.dismiss();
+
+            createSimpleDialog("RED NO DISPONIBLE\n" +
+                    "\n" +
+                    "VERIFIQUE CONEXIÓN!!!").show();
+
+        }
+
+
+    }
+
+    @Override
+    public void onNegativeButtonClick() {
+
+    }
+
+    public Boolean isOnlineNet() {
+
+        try {
+            Process p = java.lang.Runtime.getRuntime().exec("ping -c 1 www.google.es");
+
+            int val           = p.waitFor();
+            boolean reachable = (val == 0);
+            return reachable;
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+    public static boolean isLocationEnabled(Context context) {
+        int locationMode = 0;
+        String locationProviders;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+            try {
+                locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+                return false;
+            }
+
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+
+        }else{
+            locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+            return !TextUtils.isEmpty(locationProviders);
+        }
+
+
+    }
+
+
+
 
 
 }
