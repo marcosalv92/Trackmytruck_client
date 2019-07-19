@@ -31,12 +31,15 @@ public class  MyReceiver extends BroadcastReceiver {
     public LocationManager mlocManager;
     LocationListener mlocListener;
     Context mcontext;
-    ArrayList<Record> records = new ArrayList<>();
+//    ArrayList<Record> records = new ArrayList<>();
     ArrayList<Point_Record> point_records = new ArrayList<>();
-    Truck_GSON truck_gson = new Truck_GSON();
+//    Truck_GSON truck_gson = new Truck_GSON();
     private final static String DATE_PATTERN = "yyyy-MM-dd hh:mm:ss";
     public String trip_id, directory_api;
     Point_RecordDbHelper point_recordDb;
+    AsyncHttpClient client;
+    JSONObject jsonParams;
+    JSONArray pushrecordsArray;
 //    public String action;
 
     @Override
@@ -49,12 +52,9 @@ public class  MyReceiver extends BroadcastReceiver {
         {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
-//                String action = (String) bundle.get("action");
-//                if (action.equals("CREATELISTENER")) {
 
                     int time = (int) bundle.get("time");
                     int dist = (int) bundle.get("dist");
-
 
                 /*LocationManager*/
                     mlocManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -86,9 +86,7 @@ public class  MyReceiver extends BroadcastReceiver {
         public void onLocationChanged(Location loc) {
 
             loc = mlocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//            if (action.equals("REMOVELISTENER")){
-//                mlocManager.removeUpdates(mlocListener);
-//            }else {
+
                 if (loc != null) {
 
                     current_lat = loc.getLatitude();
@@ -100,26 +98,36 @@ public class  MyReceiver extends BroadcastReceiver {
                     SharedPreferences preferences_path = mcontext.getSharedPreferences("path", mcontext.MODE_PRIVATE);
                     directory_api = preferences_path.getString("path", "false");
 
-                    //                SharedPreferences preferences_conx = mcontext.getSharedPreferences("conx",mcontext.MODE_PRIVATE);
-                    //                String conx =preferences_conx.getString("conx","RED NO DISPONIBLE");
-
 
                     if (isOnlineNet()) {
-                        //Envio Https
-                        AsyncHttpClient client = new AsyncHttpClient();
 
                         // PArte con Base de DAtos
                         point_recordDb.addPoint_Record(new Point_Record(trip_id, String.valueOf(current_lat), String.valueOf(current_lng), fechaHoraActual()));
                         point_records = point_recordDb.getAllPoint_Record();
-
-                        JSONObject jsonParams = new JSONObject();
+                        int loopTripId = Integer.parseInt(point_records.get(0).getTrip_id());
+                        jsonParams = new JSONObject();
                         try {
-                            jsonParams.put("trip_id", trip_id);
+                            jsonParams.put("trip_id", point_records.get(0).getTrip_id());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        JSONArray pushrecordsArray = new JSONArray();
-                        for (int i = point_records.size() - 1; i >= 0; i--) {
+                        pushrecordsArray = new JSONArray();
+
+                        for (int i = 0; i < point_records.size(); i++) {
+
+                            int compare_id = Integer.parseInt(point_records.get(i).getTrip_id());
+                            if (loopTripId != compare_id){
+                                loopTripId = Integer.parseInt(point_records.get(i).getTrip_id());
+                                sendJson();
+                                jsonParams = new JSONObject();
+                                try {
+                                    jsonParams.put("trip_id", point_records.get(i).getTrip_id());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                pushrecordsArray = new JSONArray();
+                            }
+
                             JSONObject record_new = new JSONObject();
                             try {
                                 record_new.put("latitude", point_records.get(i).getLatitude());
@@ -132,120 +140,11 @@ public class  MyReceiver extends BroadcastReceiver {
 
 
                         }
-                        try {
-                            jsonParams.put("locations", pushrecordsArray);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                        StringEntity bodyjson = null;
-                        try {
-                            bodyjson = new StringEntity(jsonParams.toString());
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        }
-
-
-                        client.post(mcontext, "https://" + directory_api, bodyjson, "application/json",
-                                new CaptureResponserHandler(mcontext,point_recordDb));
-//                        point_recordDb.deleteAll();
+                        sendJson();
+                        point_recordDb.deleteAll();
                         point_records.clear();
 
-
-
-                        //EJEEMPLO DARIO
-                        //                        JSONObject jsonParams = new JSONObject();
-                        //                        // Param1
-                        //                        jsonParams.put("trip_id",trip_id);
-                        //
-                        //                        JSONArray recordsArray = new JSONArray();
-                        //                        JSONObject record1 = new JSONObject();
-                        //                        record1.put("latitude",String.valueOf(current_lat));
-                        //                        record1.put("longitude",String.valueOf(current_lng));
-                        //                        record1.put("recorded_at",fechaHoraActual());
-                        //                        recordsArray.put(record1);
-                        //
-                        //
-                        ////                        JSONObject record2 = new JSONObject();
-                        ////                        record2.put("latitude","22.6");
-                        ////                        record2.put("longitude","-83.6");
-                        ////                        record2.put("recorded_at","2019-07-08 11:45:45");
-                        ////                        recordsArray.put(record2);
-                        //
-                        //                        //Param2
-                        //                        jsonParams.put("records", recordsArray);
-                        //
-                        //
-                        //                        StringEntity eee = new StringEntity(jsonParams.toString());
-                        //
-                        //                        client.post(mcontext, "https://www.trackmytruck.tk/api/locations", eee, "application/json",
-                        //                                new CaptureResponserHandler(mcontext));
-
-
-                        //Sin DATABASE
-
-                        //                    Record new_record = new Record();
-                        //                    new_record.setLatitude(current_lat);
-                        //                    new_record.setLongitude(current_lng);
-                        //                    new_record.setRecorded_at(fechaHoraActual());
-                        //                    records.add(new_record);
-                        //
-                        //                        //AsyncHttpClient client2 = new AsyncHttpClient();
-                        //                        JSONObject jsonParams = new JSONObject();
-                        //                        try {
-                        //                            jsonParams.put("trip_id",trip_id);
-                        //                        } catch (JSONException e) {
-                        //                            e.printStackTrace();
-                        //                        }
-                        //                        JSONArray pushrecordsArray = new JSONArray();
-                        //                        for(int i = records.size()-1; i >=0 ; i--)
-                        //                        {
-                        //                            JSONObject record_new = new JSONObject();
-                        //                            try {
-                        //                                record_new.put("latitude", String.valueOf(records.get(i).getLatitude()));
-                        //                                record_new.put("longitude", String.valueOf(records.get(i).getLongitude()));
-                        //                                record_new.put("recorded_at", records.get(i).getRecorder_at());
-                        //                                pushrecordsArray.put(record_new);
-                        //                            }catch (JSONException e) {
-                        //                            e.printStackTrace();
-                        //                            }
-                        //
-                        //
-                        //                        }
-                        //                        try {
-                        //                            jsonParams.put("records", pushrecordsArray);
-                        //
-                        //                        } catch (JSONException e) {
-                        //                            e.printStackTrace();
-                        //                        }
-                        //
-                        //                        StringEntity bodyjson = null;
-                        //                        try {
-                        //                            bodyjson = new StringEntity(jsonParams.toString());
-                        //                        } catch (UnsupportedEncodingException e) {
-                        //                            e.printStackTrace();
-                        //                        }
-                        //
-                        //
-                        //                        client.post(mcontext, "https://"+ directory_api, bodyjson, "application/json",
-                        //                                new CaptureResponserHandler(mcontext));
-                        //                        records.clear();
-                        //                        count_record_offline = 0;
-
                     } else {
-                        //almacenar variable location;
-
-                        //                      Sin DATABASE
-                        //                    truck_gson.settrip_id(trip_id);
-                        //                    Record record = new Record();
-                        //                    record.setLatitude(current_lat);
-                        //                    record.setLongitude(current_lng);
-                        //                    record.setRecorded_at(fechaHoraActual());
-                        //                      records.add(record);
-                        //                      truck_gson.setRecords(records);
-
-
                         // CON Database
                         Point_Record new_point = new Point_Record(trip_id, String.valueOf(current_lat), String.valueOf(current_lng), fechaHoraActual());
                         point_recordDb.addPoint_Record(new_point);
@@ -259,7 +158,30 @@ public class  MyReceiver extends BroadcastReceiver {
                     Toast.makeText(mcontext, text, Toast.LENGTH_LONG).show();
                     //                mlocManager.removeUpdates(mlocListener);
                 }
-//            }
+
+        }
+
+        public void sendJson(){
+
+            client = new AsyncHttpClient(true,80,443);
+
+            try {
+                jsonParams.put("locations", pushrecordsArray);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            StringEntity bodyjson = null;
+            try {
+                bodyjson = new StringEntity(jsonParams.toString());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+
+            client.post(mcontext, "https://" + directory_api, bodyjson, "application/json",
+                    new CaptureResponserHandler(mcontext,point_recordDb));
         }
 
         public String fechaHoraActual(){
@@ -271,7 +193,7 @@ public class  MyReceiver extends BroadcastReceiver {
             //System.out.println(simpDate.format(date));
             return simpDate.format(date);
 
-            //SimpleDateFormat( "yyyy-MM-dd hh:mm:ss", java.util.Locale.getDefault()).format(Calendar.getInstance() .getTime());
+
         }
         public Boolean isOnlineNet() {
 
@@ -305,9 +227,6 @@ public class  MyReceiver extends BroadcastReceiver {
         }
 
     }
-//    public void removeAllLocation(){
-//        mlocManager.removeUpdates(mlocListener);
-//    }
 
 
 

@@ -28,7 +28,7 @@ public class CaptureResponserHandler extends AsyncHttpResponseHandler {
 
             String msg = new String(responseBody, "UTF-8");
             mostraMensaje(msg);
-            point_recordDbHelper.deleteAll();
+            //point_recordDbHelper.deleteAll();
 
 
         } catch (UnsupportedEncodingException e) {
@@ -39,8 +39,8 @@ public class CaptureResponserHandler extends AsyncHttpResponseHandler {
     @Override
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
 
-        int cant = (int) point_recordDbHelper.countAllRecord();
-        Toast.makeText(mcontext.getApplicationContext(),"Fallo el envio de una localizacion...Record Store:"+ String.valueOf(cant), Toast.LENGTH_LONG).show();
+//        int cant = (int) point_recordDbHelper.countAllRecord();
+        Toast.makeText(mcontext.getApplicationContext(),"Fallo el envio de una localizacion...", Toast.LENGTH_LONG).show();
 //        try {
 //            String msg = new String(responseBody, "UTF-8");
 //            mostraMensaje(msg);

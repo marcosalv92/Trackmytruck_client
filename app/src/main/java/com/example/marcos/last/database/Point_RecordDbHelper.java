@@ -51,6 +51,11 @@ public class Point_RecordDbHelper extends SQLiteOpenHelper {
         db.insert(Point_RecordContract.Point_RecordEntry.TABLE_NAME, null, record.toContentValues());
         db.close();
     }
+//    public void addNewDatabase(Point_RecordDbHelper point_recordDbHelper){
+//
+//
+//    }
+
     //Obtener la lista de comentarios en la base de datos
     public ArrayList<Point_Record> getAllPoint_Record(){
         //Creamos el cursor

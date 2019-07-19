@@ -57,7 +57,8 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 //    Gson gson = new Gson();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        setTheme(R.style.AppTheme);
+         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //finish();
         ed_id = (TextView) findViewById(R.id.textView_id);
@@ -199,29 +200,16 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 
                         if (frec_dist.equals("") || frec_t.equals("")) {
                             createSimpleDialog("Introduzca intervalo requerido\n Time(s) y Dist(m)").show();
-                            //                        Toast.makeText(getApplicationContext(), "Introduzca intervalo requerido", Toast.LENGTH_LONG).show();
+
                         } else {
                             int intfrecuencia = Integer.parseInt(frec_t);
                             int intDist = Integer.parseInt(frec_dist);
-                            //                  Intent intent = new Intent();
-                            //                        Context context = getApplicationContext();
-                            //                        Intent intent = new Intent(context,myReceiver.getClass());
-                            //                        intent.putExtra("time", intfrecuencia);
-                            //                        intent.putExtra("dist", intDist);
-                            //                        context.sendBroadcast(intent);
+
                             Intent intent = new Intent();
                             intent.setAction("com.journaldev.CUSTOM_INTENT");
                             intent.putExtra("time", intfrecuencia);
                             intent.putExtra("dist", intDist);
-                            //                        intent.putExtra("action","CREATELISTENER");
                             sendBroadcast(intent);
-
-                            //                        Intent intent = new Intent();
-                            //                        intent.putExtra("time", intfrecuencia);
-                            //                        intent.putExtra("dist", intDist);
-                            //                        intent.setAction("com.journaldev.CUSTOM_SERVICE");
-                            //                        startService(intent);
-                            //                        startService(new Intent(getApplicationContext(), GPS_Service.class));
 
                             bton_newtrip.setVisibility(View.INVISIBLE);
                             startgps.setVisibility(View.INVISIBLE);
@@ -239,16 +227,13 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
                     createSimpleDialog("RED DISPONIBLE SIN INTERNET \n" +
                             "\n" +
                             "VERIFIQUE CONEXIÓN!!!").show();
-//                    Toast.makeText(getApplicationContext(), "RED DISPONIBLE SIN INTERNET", Toast.LENGTH_LONG).show();
 
                 }else{
                     createSimpleDialog("RED NO DISPONIBLE\n" +
                             "\n" +
                             "VERIFIQUE CONEXIÓN!!!").show();
-//                    Toast.makeText(getApplicationContext(), "RED NO DISPONIBLE ", Toast.LENGTH_LONG).show();
+
                 }
-
-
 
             }
         });
@@ -260,13 +245,6 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
                 startgps.setVisibility(View.VISIBLE);
                 stopgps.setVisibility(View.INVISIBLE);
                 btnBackground.setVisibility(View.INVISIBLE);
-//                Point_RecordDbHelper prDb = new Point_RecordDbHelper(getApplicationContext());
-//                prDb.deleteAll();
-//                Intent intent = new Intent();
-//                intent.setAction("com.journaldev.CUSTOM_INTENT");
-//                intent.putExtra("action","REMOVELISTENER");
-//                sendBroadcast(intent);
-//                myReceiver.removeAllLocation();
                 System.exit(0);
             }
 
@@ -411,14 +389,13 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
-//        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setMessage("Verificando new trip...");
         progressDialog.show();
 
         if (isOnlineNet()) {
 
 //
-                 AsyncHttpClient client = new AsyncHttpClient();
+                 AsyncHttpClient client = new AsyncHttpClient(true,80,443);
                 final JSONObject jsonParams = new JSONObject();
                 try {
                     jsonParams.put("name",name);
@@ -448,22 +425,7 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 //                            progressDialog.dismiss();
 
                         progressDialog.dismiss();
-//                        JSONArray jarr = null;
-//                        try {
-//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//                                jarr = new JSONArray(responseBody);
-//                            }
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                        for(int i = 0; i < jarr.length(); ++i) {
-//                            try {
-//                                JSONObject jobj = jarr.getJSONObject(i);
-//                            } catch (JSONException e) {
-//                                e.printStackTrace();
-//                            }
-//                            // do your things...
-//                        }
+
                         try {
                             JSONObject json = new JSONObject(new String(responseBody));
 //                            String new_name = (String) json.get("name");
@@ -559,9 +521,4 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 
 
     }
-
-
-
-
-
 }
