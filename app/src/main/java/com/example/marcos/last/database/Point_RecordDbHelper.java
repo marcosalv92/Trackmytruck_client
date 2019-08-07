@@ -51,7 +51,7 @@ public class Point_RecordDbHelper extends SQLiteOpenHelper {
         db.insert(Point_RecordContract.Point_RecordEntry.TABLE_NAME, null, record.toContentValues());
         db.close();
     }
-//    public void addNewDatabase(Point_RecordDbHelper point_recordDbHelper){
+//    public void addTableToDatabase(Point_RecordDbHelper point_recordDbHelper){
 //
 //
 //    }

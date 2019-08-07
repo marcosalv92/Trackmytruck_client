@@ -24,10 +24,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.HttpResponseException;
 import cz.msebera.android.httpclient.entity.StringEntity;
 
 public class  MyReceiver extends BroadcastReceiver {
     double current_lat, current_lng;
+    long time_gps;
     public LocationManager mlocManager;
     LocationListener mlocListener;
     Context mcontext;
@@ -91,6 +94,8 @@ public class  MyReceiver extends BroadcastReceiver {
 
                     current_lat = loc.getLatitude();
                     current_lng = loc.getLongitude();
+                    time_gps = loc.getTime();
+                    String time_string = String.valueOf(time_gps);
 
                     SharedPreferences preferences = mcontext.getSharedPreferences("trips", mcontext.MODE_PRIVATE);
                     trip_id = preferences.getString("trip_id", "false");
@@ -102,7 +107,8 @@ public class  MyReceiver extends BroadcastReceiver {
                     if (isOnlineNet()) {
 
                         // PArte con Base de DAtos
-                        point_recordDb.addPoint_Record(new Point_Record(trip_id, String.valueOf(current_lat), String.valueOf(current_lng), fechaHoraActual()));
+                        String time_new = fechaHoraActual(time_gps);
+                        point_recordDb.addPoint_Record(new Point_Record(trip_id, String.valueOf(current_lat), String.valueOf(current_lng),time_new));
                         point_records = point_recordDb.getAllPoint_Record();
                         int loopTripId = Integer.parseInt(point_records.get(0).getTrip_id());
                         jsonParams = new JSONObject();
@@ -146,7 +152,8 @@ public class  MyReceiver extends BroadcastReceiver {
 
                     } else {
                         // CON Database
-                        Point_Record new_point = new Point_Record(trip_id, String.valueOf(current_lat), String.valueOf(current_lng), fechaHoraActual());
+                        //String time_new = fechaHoraActual(time_gps);
+                        Point_Record new_point = new Point_Record(trip_id, String.valueOf(current_lat), String.valueOf(current_lng),fechaHoraActual(time_gps));
                         point_recordDb.addPoint_Record(new_point);
                         int cant = (int) point_recordDb.countAllRecord();
                         Toast.makeText(mcontext, "Record store: " + String.valueOf(cant), Toast.LENGTH_LONG).show();
@@ -179,13 +186,17 @@ public class  MyReceiver extends BroadcastReceiver {
                 e.printStackTrace();
             }
 
+            try {
+                client.post(mcontext, "https://" + directory_api, bodyjson, "application/json",
+                        new CaptureResponserHandler(mcontext,point_records));
+            }catch (Error e){
+                Toast.makeText(mcontext, "Exception client post", Toast.LENGTH_LONG).show();
+            }
 
-            client.post(mcontext, "https://" + directory_api, bodyjson, "application/json",
-                    new CaptureResponserHandler(mcontext,point_recordDb));
         }
 
-        public String fechaHoraActual(){
-            Date date = new Date();
+        public String fechaHoraActual(long time){
+            Date date = new Date(time);
             //date.setHours(date.getHours() + 8);
             //System.out.println(date);
             SimpleDateFormat simpDate;

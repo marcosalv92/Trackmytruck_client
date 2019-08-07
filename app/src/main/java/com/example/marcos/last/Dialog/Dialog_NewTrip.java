@@ -68,7 +68,7 @@ public class Dialog_NewTrip extends DialogFragment {
         final EditText et_truck_id = (EditText) view.findViewById(R.id.newtrip_truck_id);
         et_name.setText(ruta_name);
         et_user_id.setText(user_id);
-        et_user_id.setText(truck_id);
+        et_truck_id.setText(truck_id);
 
         button_crear.setOnClickListener(
                 new View.OnClickListener() {
