@@ -38,7 +38,7 @@ public class  MyReceiver extends BroadcastReceiver {
     ArrayList<Point_Record> point_records = new ArrayList<>();
 //    Truck_GSON truck_gson = new Truck_GSON();
     private final static String DATE_PATTERN = "yyyy-MM-dd hh:mm:ss";
-    public String trip_id, directory_api;
+    public String trip_id, directory_api,token;
     Point_RecordDbHelper point_recordDb;
     AsyncHttpClient client;
     JSONObject jsonParams;
@@ -50,7 +50,13 @@ public class  MyReceiver extends BroadcastReceiver {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
         point_recordDb = new Point_RecordDbHelper(context);
+        SharedPreferences preferences = context.getSharedPreferences("trips", mcontext.MODE_PRIVATE);
+        trip_id = preferences.getString("trip_id", "false");
+        token = preferences.getString("token","false");
 
+
+        SharedPreferences preferences_path = context.getSharedPreferences("path", mcontext.MODE_PRIVATE);
+        directory_api = preferences_path.getString("path", "false");
         try
         {
             Bundle bundle = intent.getExtras();
@@ -97,11 +103,7 @@ public class  MyReceiver extends BroadcastReceiver {
                     time_gps = loc.getTime();
                     String time_string = String.valueOf(time_gps);
 
-                    SharedPreferences preferences = mcontext.getSharedPreferences("trips", mcontext.MODE_PRIVATE);
-                    trip_id = preferences.getString("trip_id", "false");
 
-                    SharedPreferences preferences_path = mcontext.getSharedPreferences("path", mcontext.MODE_PRIVATE);
-                    directory_api = preferences_path.getString("path", "false");
 
 
                     if (isOnlineNet()) {
@@ -169,8 +171,10 @@ public class  MyReceiver extends BroadcastReceiver {
         }
 
         public void sendJson(){
+//
 
             client = new AsyncHttpClient(true,80,443);
+            client.addHeader("Authorization","Bearer " + token);
 
             try {
                 jsonParams.put("locations", pushrecordsArray);

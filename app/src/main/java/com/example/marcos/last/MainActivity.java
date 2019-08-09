@@ -1,6 +1,9 @@
 package com.example.marcos.last;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -36,6 +39,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
@@ -51,6 +55,9 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
     public String directory;
     public String frec_t,frec_dist;
     ProgressDialog progressDialog = null;
+    public View mProgressView;
+    public TextView mProgresTextView;
+    public View mLoginFormView;
 //    MyReceiver myReceiver = new MyReceiver();
 
     Truck_GSON truck_GSON = new Truck_GSON();
@@ -59,6 +66,14 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme);
          super.onCreate(savedInstanceState);
+        // Redirección al Login
+        SharedPreferences pref = getSharedPreferences("trips",MODE_PRIVATE);
+        String token = pref.getString("token","false");
+        if (token.equals("false")) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
         //finish();
         ed_id = (TextView) findViewById(R.id.textView_id);
@@ -75,6 +90,11 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
         stopgps = (Button) findViewById(R.id.buttonStop);
         bton_newtrip = (Button) findViewById(R.id.button_newtrip);
         btnBackground = (Button) findViewById(R.id.buttonBackground);
+
+        mLoginFormView = findViewById(R.id.login_form2);
+        mProgressView = findViewById(R.id.login_progress);
+        mProgresTextView = (TextView) findViewById(R.id.textView_progress2);
+
 
 
         //Almacenar Variables de Entrada  trip_id  truck_id user_id
@@ -362,9 +382,115 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_logout) {
+            if (stopgps.getVisibility() == View.INVISIBLE){
+                SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+                String token = preferences.getString("token","false");
+                if (!token.equals("false")){
+                    mProgresTextView.setText("Logout");
+                    showProgress(true);
+                    AsyncHttpClient client = new AsyncHttpClient(true,80,443);
+                    client.addHeader("Authorization","Bearer " + token);
+
+                    client.post(getApplicationContext(), "https://www.trackmytruck.tk/api/logout",null,new AsyncHttpResponseHandler() {
+
+                        @Override
+                        public void onStart() {
+                            super.onStart();
+
+
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+    //
+                            SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString("token","false");
+                            editor.commit();
+                            showProgress(false);
+                            try {
+                                String msg = new String(responseBody, "UTF-8");
+                                mostrarmensaje(msg);
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+
+                            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                            finish();
+
+
+    //                    Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_LONG).show();
+
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                            showProgress(false);
+    //                    try {
+    //                        String msg = new String(responseBody, "UTF-8");
+    //                        mostrarmensaje(msg);
+    //                    } catch (UnsupportedEncodingException e) {
+    //                        e.printStackTrace();
+    //                    }
+                            Toast.makeText(getApplicationContext(), "Falló conexion con el servidor...verifique conexión", Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+
+                }
+            }else {
+                createSimpleDialog("DETENER ACTUALIZACIONES GPS").show();
+//                Toast.makeText(getApplicationContext(), "Detener envío de actualizaciones primero...", Toast.LENGTH_LONG).show();
+            }
+
+
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
+    private void mostrarmensaje(String msg) {
+        Toast.makeText(getApplicationContext(),msg,Toast.LENGTH_LONG).show();
+    }
+
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mProgresTextView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgresTextView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                    mProgresTextView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgresTextView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
     public AlertDialog createSimpleDialog(String msg) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -387,15 +513,19 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
     @Override
     public void onPossitiveButtonClick(final String name, final String user, final String truck) {
 
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("Verificando new trip...");
-        progressDialog.show();
+//        progressDialog = new ProgressDialog(this);
+//        progressDialog.setCancelable(false);
+//        progressDialog.setMessage("Verificando new trip...");
+//        progressDialog.show();
+        mProgresTextView.setText("Creando Nuevo Viaje...");
+        showProgress(true);
 
         if (isOnlineNet()) {
 
-//
-                 AsyncHttpClient client = new AsyncHttpClient(true,80,443);
+                SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+                String token = preferences.getString("token","false");
+                AsyncHttpClient client = new AsyncHttpClient(true,80,443);
+                client.addHeader("Authorization","Bearer " + token);
                 final JSONObject jsonParams = new JSONObject();
                 try {
                     jsonParams.put("name",name);
@@ -422,9 +552,10 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-//                            progressDialog.dismiss();
 
-                        progressDialog.dismiss();
+
+//                        progressDialog.dismiss();
+                        showProgress(false);
 
                         try {
                             JSONObject json = new JSONObject(new String(responseBody));
@@ -454,11 +585,14 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        progressDialog.dismiss();
-                        Toast.makeText(getApplicationContext(),"Falló conexion con el servidor...verifique conexión", Toast.LENGTH_LONG).show();
-                        Dialog_NewTrip newTrip = new Dialog_NewTrip(name,user,truck);
-                        newTrip.show(getSupportFragmentManager(),"DialogTRYNewTrip");
-//                            progressDialog.dismiss();
+//                        progressDialog.dismiss();
+                        showProgress(false);
+
+                            Toast.makeText(getApplicationContext(), "Falló conexion con el servidor...verifique conexión", Toast.LENGTH_LONG).show();
+                            Dialog_NewTrip newTrip = new Dialog_NewTrip(name, user, truck);
+                        if (isRunning(getApplicationContext())) {
+                            newTrip.show(getSupportFragmentManager(), "DialogTRYNewTrip");
+                        }
 
 
                     }
@@ -467,7 +601,8 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
                 });
         }else{
 
-            progressDialog.dismiss();
+//            progressDialog.dismiss();
+            showProgress(false);
 
             createSimpleDialog("RED NO DISPONIBLE\n" +
                     "\n" +
@@ -520,5 +655,16 @@ public class MainActivity extends ActionBarActivity implements Dialog_NewTrip.Ne
         }
 
 
+    }
+    public boolean isRunning(Context ctx) {
+        ActivityManager activityManager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = activityManager.getRunningTasks(Integer.MAX_VALUE);
+
+        for (ActivityManager.RunningTaskInfo task : tasks) {
+            if (ctx.getPackageName().equalsIgnoreCase(task.baseActivity.getPackageName()))
+                return true;
+        }
+
+        return false;
     }
 }
