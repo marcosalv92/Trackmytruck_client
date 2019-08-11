@@ -69,7 +69,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    private View textView_Progress;
+    private TextView textView_Progress;
+    AsyncHttpClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,7 +108,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-        textView_Progress = findViewById(R.id.textView_progress);
+        textView_Progress = (TextView)findViewById(R.id.textView_progress);
     }
 
     private void attemptLogout() {
@@ -115,7 +116,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         String token = preferences.getString("token","false");
         if (!token.equals("false")){
             showProgress(true);
-            AsyncHttpClient client = new AsyncHttpClient(true,80,443);
+            client = new AsyncHttpClient(true,80,443);
             client.addHeader("Authorization","Bearer " + token);
 
             client.post(getApplicationContext(), "https://www.trackmytruck.tk/api/logout",null,new AsyncHttpResponseHandler() {
@@ -190,8 +191,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         boolean cancel = false;
         View focusView = null;
+        textView_Progress.setText("Verificando Login...");
         showProgress(true);
-        AsyncHttpClient client = new AsyncHttpClient(true,80,443);
+        client = new AsyncHttpClient(true,80,443);
 
         final JSONObject jsonParams = new JSONObject();
         try {
@@ -223,6 +225,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                 SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
+
                 try {
                     JSONObject json = new JSONObject(new String(responseBody));
                     String token = (String) json.get("access_token");
@@ -233,16 +236,84 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                     editor.putString("token",token);
                     editor.commit();
+                    client.addHeader("Authorization","Bearer " + token);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
 
+                client.get(getApplicationContext(), "https://www.trackmytruck.tk/api/user",new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        super.onStart();
+
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+//
+
+//                        showProgress(false);
+                        textView_Progress.setText("Obteniendo informacion de usuario...");
+                        SharedPreferences preferences = getSharedPreferences("user_inf",MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        JSONObject json = null;
+                        try {
+                            json = new JSONObject(new String(responseBody));
+                            Integer id = (Integer) json.get("id");
+                            String first_name = (String) json.get("first_name");
+                            String last_name = (String) json.get("last_name");
+                            String email = (String) json.get("email");
+                            String phone = (String) json.get("phone");
+                            Integer active = (Integer) json.get("active");
+                            Integer client_id = (Integer) json.get("client_id");
+                            String profile_image = (String) json.get("profile_image");
+                            String created_at = (String) json.get("created_at");
+                            String updated_at = (String) json.get("updated_at");
+
+                            editor.putString("id",String.valueOf(id));
+                            editor.putString("first_name",first_name);
+                            editor.putString("last_name",last_name);
+                            editor.putString("email",email);
+                            editor.putString("phone",phone);
+                            editor.putString("active",String.valueOf(active));
+                            editor.putString("client_id",String.valueOf(client_id));
+                            editor.putString("profile_image",profile_image);
+                            editor.putString("created_at",created_at);
+                            editor.putString("updated_at",updated_at);
+                            editor.commit();
+
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Toast.makeText(getApplicationContext(), "Datos de Usuarios recibidos...", Toast.LENGTH_LONG).show();
+//
+                        startActivity(new Intent(LoginActivity.this,MainActivity.class));
+
+                        finish();
+//                    Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_LONG).show();
+
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        showProgress(false);
+//                    try {
+//                        String msg = new String(responseBody, "UTF-8");
+//                        mostrarmensaje(msg);
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    }
+                        Toast.makeText(getApplicationContext(), "Falló recibiendo datos de usuarios..", Toast.LENGTH_LONG).show();
+                    }
+                });
+
 //                Toast.makeText(getApplicationContext(), "Token Recibido", Toast.LENGTH_LONG).show();
 
-                startActivity(new Intent(LoginActivity.this,MainActivity.class));
 
-                finish();
 
 
 
@@ -252,7 +323,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 showProgress(false);
 
-                Toast.makeText(getApplicationContext(), "Falló conexion con el servidor...verifique conexión", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Falló autentificación.... revise email y password", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -296,6 +367,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         //TODO: Replace this with your own logic
         return password.length() > 4;
     }
+
 
     /**
      * Shows the progress UI and hides the login form.

@@ -36,6 +36,7 @@
             android:id="@+id/email_login_form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:focusableInTouchMode="true"
             android:orientation="vertical">
 
             <android.support.design.widget.TextInputLayout
@@ -50,7 +51,8 @@
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="client_user@test.com" />
+                    android:text="client_user@test.com"
+                     />
 
             </android.support.design.widget.TextInputLayout>
 

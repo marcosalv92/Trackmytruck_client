@@ -35,7 +35,7 @@ public class Networkchange extends BroadcastReceiver {
                 //Toast.makeText(mcontext.getApplicationContext(), "RED DISPONIBLE CON INTERNET", Toast.LENGTH_LONG).show();
                 try {
                     //ai = pm.getApplicationInfo(intent.getData().getSchemeSpecificPart(), 0);
-                    Intent i = new Intent("broadcastName");
+                    Intent i = new Intent("NetworkChange");
                     // Data pass to activity
                     i.putExtra("appInfo", mcontext.getString(R.string.text_state_network_internet_enable));
                     mcontext.sendBroadcast(i);
@@ -49,7 +49,7 @@ public class Networkchange extends BroadcastReceiver {
                 //Toast.makeText(mcontext.getApplicationContext(), "RED DISPONIBLE SIN INTERNET", Toast.LENGTH_LONG).show();
                 try {
                     //ai = pm.getApplicationInfo(intent.getData().getSchemeSpecificPart(), 0);
-                    Intent i = new Intent("broadcastName");
+                    Intent i = new Intent("NetworkChange");
                     // Data pass to activity
                     i.putExtra("appInfo", mcontext.getString(R.string.text_state_network_available_without_internet));
                     mcontext.sendBroadcast(i);
@@ -64,7 +64,7 @@ public class Networkchange extends BroadcastReceiver {
             //Toast.makeText(mcontext.getApplicationContext(), "RED NO DISPONIBLE", Toast.LENGTH_LONG).show();
             try {
                 //ai = pm.getApplicationInfo(intent.getData().getSchemeSpecificPart(), 0);
-                Intent i = new Intent("broadcastName");
+                Intent i = new Intent("NetworkChange");
                 // Data pass to activity
                 i.putExtra("appInfo", mcontext.getString(R.string.text_state_network_disable));
                 mcontext.sendBroadcast(i);

@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,7 +52,7 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 
 public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.NewTrip_DialogInterface {
 
-    TextView ed_id, ed_truck_id, ed_user_id, ed_name;
+    TextView ed_id, ed_truck_id, ed_user_id, ed_name,ed_user_data;
     EditText ed_updatetime, ed_updatedist, ed_path, ed_coordinate;
     Button startgps, stopgps, bton_newtrip, btnBackground;
     public String conexion_Stage;
@@ -97,11 +98,15 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
         ed_user_id = (TextView) findViewById(R.id.textViewUser_id);
         ed_truck_id = (TextView) findViewById(R.id.textViewTruck_id);
         ed_name = (TextView) findViewById(R.id.textView_name);
+        ed_user_data = (TextView)findViewById(R.id.textView_user);
 
         ed_updatetime = (EditText) findViewById(R.id.editTextTime);
         ed_updatedist = (EditText) findViewById(R.id.editTextDist);
         ed_path = (EditText) findViewById(R.id.editTextpaht);
         ed_coordinate = (EditText) findViewById(R.id.editText);
+
+
+
 
         startgps = (Button) findViewById(R.id.buttonStart);
         stopgps = (Button) findViewById(R.id.buttonStop);
@@ -111,6 +116,11 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
         mLoginFormView = findViewById(R.id.login_form2);
         mProgressView = findViewById(R.id.login_progress);
         mProgresTextView = (TextView) findViewById(R.id.textView_progress2);
+
+        SharedPreferences preferences_user = getSharedPreferences("user_inf", MODE_PRIVATE);
+        String name_user = preferences_user.getString("first_name", "Error");
+        String last_name_user = preferences_user.getString("last_name", "Error");
+        ed_user_data.setText("Hola "+name_user+" "+last_name_user);
 
 
         //Almacenar Variables de Entrada  trip_id  truck_id user_id
@@ -195,27 +205,7 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
 
         }
 
-
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-
-                // get applicationInfo
-                String recibido = intent.getExtras().getString("appInfo");
-                ed_coordinate.setText(recibido);
-                conexion_Stage = recibido;
-                SharedPreferences preferences = getSharedPreferences("conx", MODE_PRIVATE);
-                String mconx = preferences.getString("conx", getString(R.string.text_state_network_disable));
-                if (!conexion_Stage.equals(mconx)) {
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString("conx", conexion_Stage);
-                    editor.commit();
-                }
-
-            }
-        };
-
-        registerReceiver(broadcastReceiver, new IntentFilter("broadcastName"));
+        registerReceiver(broadcastReceiver, new IntentFilter("NetworkChange"));
 
         startgps.setOnClickListener(new View.OnClickListener() {
 
@@ -240,6 +230,9 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
 //                            intent.putExtra("dist", intDist);
 //                            sendBroadcast(intent);
 //
+                            ed_updatetime.setFocusable(false);
+                            ed_updatedist.setFocusable(false);
+                            ed_path.setFocusable(false);
                             bton_newtrip.setVisibility(View.INVISIBLE);
                             startgps.setVisibility(View.INVISIBLE);
                             btnBackground.setVisibility(View.VISIBLE);
@@ -290,6 +283,10 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                 btnBackground.setVisibility(View.INVISIBLE);
                 //System.exit(0);
                 mlocManager.removeUpdates(mlocListener);
+                ed_updatetime.setFocusableInTouchMode(true);
+                ed_updatedist.setFocusableInTouchMode(true);
+                ed_path.setFocusableInTouchMode(true);
+
             }
 
         });
@@ -365,14 +362,14 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                             SharedPreferences.Editor editor = preferences.edit();
                             editor.putString("token", "false");
                             editor.commit();
-                            showProgress(false);
+                            //showProgress(false);
                             try {
                                 String msg = new String(responseBody, "UTF-8");
                                 showMessage(msg);
                             } catch (UnsupportedEncodingException e) {
                                 e.printStackTrace();
                             }
-
+                            unregisterReceiver(broadcastReceiver);
                             startActivity(new Intent(MainActivity.this, LoginActivity.class));
                             finish();
 
@@ -837,4 +834,22 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
             editor_dist.commit();
         }
     }
+    public BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            // get applicationInfo
+            String recibido = intent.getExtras().getString("appInfo");
+            ed_coordinate.setText(recibido);
+            conexion_Stage = recibido;
+            SharedPreferences preferences = getSharedPreferences("conx", MODE_PRIVATE);
+            String mconx = preferences.getString("conx", getString(R.string.text_state_network_disable));
+            if (!conexion_Stage.equals(mconx)) {
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("conx", conexion_Stage);
+                editor.commit();
+            }
+
+        }
+    };
 }
