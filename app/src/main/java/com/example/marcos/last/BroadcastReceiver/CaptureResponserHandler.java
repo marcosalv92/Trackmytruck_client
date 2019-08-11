@@ -1,4 +1,4 @@
-package com.example.marcos.last;
+package com.example.marcos.last.BroadcastReceiver;
 
 import android.content.Context;
 import android.widget.Toast;

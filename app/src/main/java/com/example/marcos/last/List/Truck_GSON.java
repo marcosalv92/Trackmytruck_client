@@ -1,4 +1,6 @@
-package com.example.marcos.last;
+package com.example.marcos.last.List;
+
+import com.example.marcos.last.List.Record;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package com.example.marcos.last;
+package com.example.marcos.last.BroadcastReceiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,6 +9,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.example.marcos.last.R;
 
 import org.w3c.dom.Text;
 
@@ -35,7 +37,7 @@ public class Networkchange extends BroadcastReceiver {
                     //ai = pm.getApplicationInfo(intent.getData().getSchemeSpecificPart(), 0);
                     Intent i = new Intent("broadcastName");
                     // Data pass to activity
-                    i.putExtra("appInfo", "RED DISPONIBLE CON INTERNET");
+                    i.putExtra("appInfo", mcontext.getString(R.string.text_state_network_internet_enable));
                     mcontext.sendBroadcast(i);
 
                 } catch (Exception e){
@@ -49,7 +51,7 @@ public class Networkchange extends BroadcastReceiver {
                     //ai = pm.getApplicationInfo(intent.getData().getSchemeSpecificPart(), 0);
                     Intent i = new Intent("broadcastName");
                     // Data pass to activity
-                    i.putExtra("appInfo", "RED DISPONIBLE SIN INTERNET");
+                    i.putExtra("appInfo", mcontext.getString(R.string.text_state_network_available_without_internet));
                     mcontext.sendBroadcast(i);
 
                 } catch (Exception e){
@@ -64,7 +66,7 @@ public class Networkchange extends BroadcastReceiver {
                 //ai = pm.getApplicationInfo(intent.getData().getSchemeSpecificPart(), 0);
                 Intent i = new Intent("broadcastName");
                 // Data pass to activity
-                i.putExtra("appInfo", "RED NO DISPONIBLE");
+                i.putExtra("appInfo", mcontext.getString(R.string.text_state_network_disable));
                 mcontext.sendBroadcast(i);
 
             } catch (Exception e){

@@ -1,4 +1,4 @@
-package com.example.marcos.last;
+package com.example.marcos.last.BroadcastReceiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -24,8 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.client.HttpResponseException;
 import cz.msebera.android.httpclient.entity.StringEntity;
 
 public class  MyReceiver extends BroadcastReceiver {
@@ -44,6 +42,7 @@ public class  MyReceiver extends BroadcastReceiver {
     JSONObject jsonParams;
     JSONArray pushrecordsArray;
 //    public String action;
+
 
     @Override
     public void onReceive(Context context, Intent intent) {
