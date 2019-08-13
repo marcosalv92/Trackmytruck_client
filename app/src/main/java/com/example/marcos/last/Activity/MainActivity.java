@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
     TextView ed_id, ed_truck_id, ed_user_id, ed_name,ed_user_data;
     EditText ed_updatetime, ed_updatedist, ed_path, ed_coordinate;
     Button startgps, stopgps, bton_newtrip, btnBackground;
-    public String conexion_Stage;
+    public String conexion_Stage = "";
     public String trip_id, user_id, truck_id, ruta_name;
     public String directory;
     public String frec_t, frec_dist;
@@ -85,8 +86,8 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
         setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         // Redirección al Login
-        SharedPreferences pref = getSharedPreferences("trips", MODE_PRIVATE);
-        token = pref.getString("token", "false");
+        SharedPreferences pref = getSharedPreferences(getString(R.string.name_preference_user_inf), MODE_PRIVATE);
+        token = pref.getString(getString(R.string.token), "false");
         if (token.equals("false")) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -117,52 +118,54 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
         mProgressView = findViewById(R.id.login_progress);
         mProgresTextView = (TextView) findViewById(R.id.textView_progress2);
 
-        SharedPreferences preferences_user = getSharedPreferences("user_inf", MODE_PRIVATE);
-        String name_user = preferences_user.getString("first_name", "Error");
-        String last_name_user = preferences_user.getString("last_name", "Error");
+        SharedPreferences preferences_user = getSharedPreferences(getString(R.string.name_preference_user_inf), MODE_PRIVATE);
+        SharedPreferences.Editor editor_user = preferences_user.edit();
+        String name_user = preferences_user.getString(getString(R.string.first_name), "Error");
+        String last_name_user = preferences_user.getString(getString(R.string.last_name), "Error");
         ed_user_data.setText("Hola "+name_user+" "+last_name_user);
+
 
 
         //Almacenar Variables de Entrada  trip_id  truck_id user_id
 
-        SharedPreferences preferences = getSharedPreferences("trips", MODE_PRIVATE);
-        trip_id = preferences.getString("trip_id", "false");
+        user_id = preferences_user.getString(getString(R.string.id), "false");
+        if (user_id.equals("false")) {
+            user_id = "3";
+            editor_user.putString(getString(R.string.id), user_id);
+            editor_user.commit();
+        } else {
+            ed_user_id.setText(user_id);
+
+        }
+
+
+        SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_trips), MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        trip_id = preferences.getString(getString(R.string.trip_id), "false");
         if (trip_id.equals("false")) {
             trip_id = "25";
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("trip_id", trip_id);
+            editor.putString(getString(R.string.trip_id), trip_id);
             editor.commit();
         } else {
             ed_id.setText(trip_id);
 
         }
 
-        user_id = preferences.getString("user_id", "false");
-        if (user_id.equals("false")) {
-            user_id = "3";
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("user_id", user_id);
-            editor.commit();
-        } else {
-            ed_user_id.setText(user_id);
 
-        }
 
-        truck_id = preferences.getString("truck_id", "false");
+        truck_id = preferences.getString(getString(R.string.truck_id), "false");
         if (truck_id.equals("false")) {
             truck_id = "3";
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("truck_id", truck_id);
+            editor.putString(getString(R.string.truck_id), truck_id);
             editor.commit();
         } else {
             ed_truck_id.setText(truck_id);
 
         }
-        ruta_name = preferences.getString("ruta_name", "false");
+        ruta_name = preferences.getString(getString(R.string.ruta_name), "false");
         if (ruta_name.equals("false")) {
             ruta_name = "New Trip";
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("ruta_name", ruta_name);
+            editor.putString(getString(R.string.ruta_name), ruta_name);
             editor.commit();
         } else {
             ed_name.setText(ruta_name);
@@ -172,34 +175,31 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
 
         ////Almacenar Variables de Entrada directory, frec_t, frec_dist
 
-        SharedPreferences preferences_path = getSharedPreferences("path", MODE_PRIVATE);
-        directory = preferences_path.getString("path", "false");
-        frec_dist = preferences_path.getString("frec_dist", "false");
-        frec_t = preferences_path.getString("frec_t", "false");
+
+        directory = preferences.getString(getString(R.string.path), "false");
+        frec_dist = preferences.getString(getString(R.string.frec_dist), "false");
+        frec_t = preferences.getString(getString(R.string.frec_t), "false");
 
         if (directory.equals("false")) {
             directory = getString(R.string.url_api_send_location_multiple);
-            SharedPreferences.Editor editor_path = preferences_path.edit();
-            editor_path.putString("path", getString(R.string.url_api_send_location_multiple));
-            editor_path.commit();
+            editor.putString(getString(R.string.path), getString(R.string.url_api_send_location_multiple));
+            editor.commit();
         } else {
             ed_path.setText(directory);
 
         }
         if (frec_dist.equals("false")) {
             frec_dist = "10";
-            SharedPreferences.Editor editor_dist = preferences_path.edit();
-            editor_dist.putString("frec_dist", "10");
-            editor_dist.commit();
+            editor.putString(getString(R.string.frec_dist), "10");
+            editor.commit();
         } else {
             ed_updatedist.setText(frec_dist);
 
         }
         if (frec_t.equals("false")) {
             frec_t = "10";
-            SharedPreferences.Editor editor_time = preferences_path.edit();
-            editor_time.putString("frec_t", "10");
-            editor_time.commit();
+            editor.putString(getString(R.string.frec_t), "10");
+            editor.commit();
         } else {
             ed_updatetime.setText(frec_t);
 
@@ -240,8 +240,8 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
 
                             point_recordDb = new Point_RecordDbHelper(getApplicationContext());
                             try {
-                                SharedPreferences pref = getSharedPreferences("trips", MODE_PRIVATE);
-                                token = pref.getString("token", "false");
+                                SharedPreferences pref = getSharedPreferences(getString(R.string.name_preference_user_inf), MODE_PRIVATE);
+                                token = pref.getString(getString(R.string.token), "false");
                                 client = new AsyncHttpClient(true, 80, 443);
                                 client.addHeader("Authorization", "Bearer " + token);
                                 /*LocationManager*/
@@ -259,7 +259,8 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                             }
                         }
                     } else {
-                        createSimpleDialog(getString(R.string.message_gps_disable)).show();
+                        showAlertGPSorNetwork_disable("Location","Su ubicación esta desactivada.\npor favor active su ubicación..");
+                        //createSimpleDialog(getString(R.string.message_gps_disable)).show();
 
                     }
 
@@ -267,7 +268,8 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                     createSimpleDialog(getString(R.string.message_network_active_without_internet)).show();
 
                 } else {
-                    createSimpleDialog(getString(R.string.message_network_disable)).show();
+                    showAlertGPSorNetwork_disable("Data Mobile","Sus datos móviles están desactivados.\npor favor activelos..");
+                    //createSimpleDialog(getString(R.string.message_network_disable)).show();
 
                 }
 
@@ -338,8 +340,8 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
         }
         if (id == R.id.action_logout) {
             if (stopgps.getVisibility() == View.INVISIBLE) {
-                SharedPreferences preferences = getSharedPreferences("trips", MODE_PRIVATE);
-                String token = preferences.getString("token", "false");
+                SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf), MODE_PRIVATE);
+                String token = preferences.getString(getString(R.string.token), "false");
                 if (!token.equals("false")) {
                     mProgresTextView.setText(getString(R.string.action_sign_out));
                     showProgress(true);
@@ -358,9 +360,9 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                             //
-                            SharedPreferences preferences = getSharedPreferences("trips", MODE_PRIVATE);
+                            SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf), MODE_PRIVATE);
                             SharedPreferences.Editor editor = preferences.edit();
-                            editor.putString("token", "false");
+                            editor.putString(getString(R.string.token), "false");
                             editor.commit();
                             //showProgress(false);
                             try {
@@ -459,15 +461,15 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
 
         if (isOnlineNet()) {
 
-            SharedPreferences preferences = getSharedPreferences("trips", MODE_PRIVATE);
+            SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf), MODE_PRIVATE);
             String token = preferences.getString("token", "false");
             AsyncHttpClient client = new AsyncHttpClient(true, 80, 443);
             client.addHeader("Authorization", "Bearer " + token);
             jsonParams = new JSONObject();
             try {
                 jsonParams.put("name", name);
-                jsonParams.put("user_id", user);
-                jsonParams.put("truck_id", truck);
+                jsonParams.put(getString(R.string.user_id), user);
+                jsonParams.put(getString(R.string.truck_id), truck);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -496,8 +498,8 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                     try {
                         JSONObject json = new JSONObject(new String(responseBody));
 //                            String new_name = (String) json.get("name");
-//                            String new_user_id = (String) json.get("user_id");
-//                            String new_truck_id = (String) json.get("truck_id");
+//                            String new_user_id = (String) json.get(getString(R.string.user_id));
+//                            String new_truck_id = (String) json.get(getString(R.string.truck_id));
 //                            String updated_at = (String) json.get("updated_at");
 //                            String created_at = (String) json.get("created_at");
                         Integer id = (Integer) json.get("id");
@@ -649,7 +651,7 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                     pushrecordsArray = new JSONArray();
                     if (cant_record == 0) {
                         try {
-                            jsonParams.put("trip_id", trip_id);
+                            jsonParams.put(getString(R.string.trip_id), trip_id);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -668,7 +670,7 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                         point_records = point_recordDb.getAllPoint_Record();
                         int loopTripId = Integer.parseInt(point_records.get(0).getTrip_id());
                         try {
-                            jsonParams.put("trip_id", point_records.get(0).getTrip_id());
+                            jsonParams.put(getString(R.string.trip_id), point_records.get(0).getTrip_id());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -682,7 +684,7 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
                                 sendJson();
                                 jsonParams = new JSONObject();
                                 try {
-                                    jsonParams.put("trip_id", point_records.get(i).getTrip_id());
+                                    jsonParams.put(getString(R.string.trip_id), point_records.get(i).getTrip_id());
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -775,63 +777,57 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
     private void updateAllDataActivity(String newtrip_id, String newuser_id, String newtruck_id, String newruta_name) {
 
         //trip_id = ed_id.getText().toString();
-        SharedPreferences preferences = getSharedPreferences("trips", MODE_PRIVATE);
-        String client_store = preferences.getString("trip_id", "false");
+        SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_trips), MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        String client_store = preferences.getString(getString(R.string.trip_id), "false");
         if (!newtrip_id.equals(client_store)) {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("trip_id", newtrip_id);
+            editor.putString(getString(R.string.trip_id), newtrip_id);
             editor.commit();
             trip_id = newtrip_id;
         }
         //user_id = ed_user_id.getText().toString();
-        String user_store = preferences.getString("user_id", "false");
-        if (!newuser_id.equals(user_store)) {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("user_id", newuser_id);
-            editor.commit();
-            user_id = newuser_id;
-        }
+//        String user_store = preferences.getString(getString(R.string.user_id), "false");
+//        if (!newuser_id.equals(user_store)) {
+//            editor.putString(getString(R.string.user_id), newuser_id);
+//            editor.commit();
+//            user_id = newuser_id;
+//        }
 
         //truck_id = ed_truck_id.getText().toString();
-        String truck_store = preferences.getString("truck_id", "false");
+        String truck_store = preferences.getString(getString(R.string.truck_id), "false");
         if (!newtruck_id.equals(truck_store)) {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("truck_id", newtruck_id);
+            editor.putString(getString(R.string.truck_id), newtruck_id);
             editor.commit();
             truck_id = newtruck_id;
         }
         //ruta_name = ed_name.getText().toString();
-        String name_store = preferences.getString("ruta_name", "false");
+        String name_store = preferences.getString(getString(R.string.ruta_name), "false");
         if (!newruta_name.equals(name_store)) {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("ruta_name", newruta_name);
+            editor.putString(getString(R.string.ruta_name), newruta_name);
             editor.commit();
             ruta_name = newruta_name;
         }
 
         directory = ed_path.getText().toString();
-        SharedPreferences preferences_path = getSharedPreferences("path", MODE_PRIVATE);
-        String directory_store = preferences_path.getString("path", getString(R.string.url_api_send_location_multiple));
+
+        String directory_store = preferences.getString(getString(R.string.path), getString(R.string.url_api_send_location_multiple));
         if (!directory.equals(directory_store)) {
-            SharedPreferences.Editor editor_path = preferences_path.edit();
-            editor_path.putString("path", directory);
-            editor_path.commit();
+            editor.putString(getString(R.string.path), directory);
+            editor.commit();
         }
         frec_t = ed_updatetime.getText().toString();
-        String frectime_store = preferences_path.getString("frec_t", "10");
+        String frectime_store = preferences.getString(getString(R.string.frec_t), "10");
         if (!frec_t.equals(frectime_store)) {
-            SharedPreferences.Editor editor_time = preferences_path.edit();
-            editor_time.putString("frec_t", frec_t);
-            editor_time.commit();
+            editor.putString(getString(R.string.frec_t), frec_t);
+            editor.commit();
         }
 
 
         frec_dist = ed_updatedist.getText().toString();
-        String frecdist_store = preferences_path.getString("frec_dist", "10");
+        String frecdist_store = preferences.getString(getString(R.string.frec_dist), "10");
         if (!frec_dist.equals(frecdist_store)) {
-            SharedPreferences.Editor editor_dist = preferences_path.edit();
-            editor_dist.putString("frec_dist", frec_dist);
-            editor_dist.commit();
+            editor.putString(getString(R.string.frec_dist), frec_dist);
+            editor.commit();
         }
     }
     public BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
@@ -842,14 +838,41 @@ public class MainActivity extends AppCompatActivity implements Dialog_NewTrip.Ne
             String recibido = intent.getExtras().getString("appInfo");
             ed_coordinate.setText(recibido);
             conexion_Stage = recibido;
-            SharedPreferences preferences = getSharedPreferences("conx", MODE_PRIVATE);
-            String mconx = preferences.getString("conx", getString(R.string.text_state_network_disable));
-            if (!conexion_Stage.equals(mconx)) {
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putString("conx", conexion_Stage);
-                editor.commit();
-            }
+//            SharedPreferences preferences = getSharedPreferences("conx", MODE_PRIVATE);
+//            String mconx = preferences.getString("conx", getString(R.string.text_state_network_disable));
+//            if (!conexion_Stage.equals(mconx)) {
+//                SharedPreferences.Editor editor = preferences.edit();
+//                editor.putString("conx", conexion_Stage);
+//                editor.commit();
+//            }
 
         }
     };
+    private void showAlertGPSorNetwork_disable(final String isLocation, String msg) {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Enable "+isLocation)
+                .setMessage(msg)
+                .setPositiveButton("Config de "+isLocation, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        if (isLocation.equals("Location")) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+
+                            startActivity(intent);
+                        }else {
+                            Intent intent = new Intent(Intent.ACTION_MAIN);
+                            intent.setComponent(new ComponentName("com.android.settings",
+                                    "com.android.settings.Settings$DataUsageSummaryActivity"));
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                        }
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    }
+                });
+        dialog.show();
+    }
 }

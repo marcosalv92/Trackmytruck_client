@@ -17,23 +17,10 @@
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
 
+
     <!-- Strings related to activity main -->
-    <string name="action_sign_out">Logout</string>
-    <string name="message_update_time_dist_gps">Introduzca intervalo requerido\n Time(s) y Dist(m)</string>
-    <string name="message_gps_disable">GPS INACTIVO \n\nACTIVE GPS!!!</string>
-    <string name="message_network_active_without_internet">RED DISPONIBLE SIN INTERNET \n\n VERIFIQUE CONEXIÓN!!!</string>
-    <string name="message_network_disable">RED NO DISPONIBLE\n\n VERIFIQUE CONEXIÓN!!!</string>
-    <string name="url_api_logout">https://www.trackmytruck.tk/api/logout</string>
-    <string name="message_stop_update_gps">DETENER ACTUALIZACIONES GPS</string>
-    <string name="setTitle_AlertDialog_Information">Información</string>
-    <string name="setPositiveButton_AlertDialog">OK</string>
-    <string name="text_progress_newtrip">Creando Nuevo Viaje...</string>
-    <string name="url_api_newtrip">https://www.trackmytruck.tk/api/trips</string>
-    <string name="text_button_create_new_trip">Crear Nuevo Viaje</string>
-    <string name="text_button_start_update_gps">Start</string>
-    <string name="text_button_run_background">Run in Background</string>
-    <string name="text_button_stop_update_gps">Stop</string>
-    <string name="url_api_send_location_multiple">www.trackmytruck.tk/api/locations/multiple</string>
+
+    <!-- Strings related to view of main activity -->
     <string name="textView_code_trip">TRIP_ID:</string>
     <string name="textView_code_user">USER_ID:</string>
     <string name="textView_code_truck">TRUCK_ID:</string>
@@ -41,7 +28,67 @@
     <string name="textView_modify_update_time_gps">Update Time(s)</string>
     <string name="textView_modify_update_dist_gps">Update Dist(m)</string>
     <string name="textView_modify_directory_send_location">Directory Path</string>
+
+    <string name="text_button_create_new_trip">Crear Nuevo Viaje</string>
+    <string name="text_button_start_update_gps">Start</string>
+    <string name="text_button_run_background">Run in Background</string>
+    <string name="text_button_stop_update_gps">Stop</string>
+
+    <!-- Strings related to State of conexion in the app -->
     <string name="text_state_network_internet_enable">RED DISPONIBLE CON INTERNET</string>
     <string name="text_state_network_available_without_internet">RED DISPONIBLE SIN INTERNET</string>
     <string name="text_state_network_disable">RED NO DISPONIBLE</string>
+
+    <!-- Strings related to Message show in activity -->
+    <string name="message_login">Verificando Login...</string>
+    <string name="message_login_user">Obteniendo informacion de usuario...</string>
+    <string name="message_update_time_dist_gps">Introduzca intervalo requerido\n Time(s) y Dist(m)</string>
+    <string name="message_gps_disable">GPS INACTIVO \n\nACTIVE GPS!!!</string>
+    <string name="message_network_active_without_internet">RED DISPONIBLE SIN INTERNET \n\n VERIFIQUE CONEXIÓN!!!</string>
+    <string name="message_network_disable">RED NO DISPONIBLE\n\n VERIFIQUE CONEXIÓN!!!</string>
+    <string name="message_stop_update_gps">DETENER ACTUALIZACIONES GPS</string>
+    <string name="setTitle_AlertDialog_Information">Información</string>
+    <string name="setPositiveButton_AlertDialog">OK</string>
+    <string name="text_progress_newtrip">Creando Nuevo Viaje...</string>
+    <string name="action_sign_out">Logout</string>
+
+    <!-- Strings related to URL API -->
+    <string name="url_api_newtrip">https://www.trackmytruck.tk/api/trips</string>
+    <string name="url_api_send_location_multiple">www.trackmytruck.tk/api/locations/multiple</string>
+    <string name="url_api_infor_user">https://www.trackmytruck.tk/api/user</string>
+    <string name="url_api_login">https://www.trackmytruck.tk/api/login</string>
+    <string name="url_api_logout">https://www.trackmytruck.tk/api/logout</string>
+
+
+    <!-- Strings related to etiquetas SharePreference of user_inf  -->
+
+    <string name="name_preference_user_inf">user_inf</string>
+    <string name="id">id</string>
+    <string name="first_name">first_name</string>
+    <string name="last_name">last_name</string>
+    <string name="email">email</string>
+    <string name="phone">phone</string>
+    <string name="active">active</string>
+    <string name="client_id">client_id</string>
+    <string name="profile_image">profile_image</string>
+    <string name="created_at">created_at</string>
+    <string name="updated_at">updated_at</string>
+    <string name="token">token</string>
+
+    <!-- Strings related to etiquetas SharePreference of trip  -->
+
+    <string name="name_preference_trips">trips</string>
+    <string name="trip_id">trip_id</string>
+    <string name="truck_id">truck_id</string>
+    <string name="ruta_name">ruta_name</string>
+    <string name="user_id">user_id</string>
+    <string name="path">path</string>
+    <string name="frec_dist">frec_dist</string>
+    <string name="frec_t">frec_t</string>
+
+    <!-- Strings related to etiquetas SharePreference of State Conexion  -->
+
+
+
+
 </resources>

@@ -15,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Property;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,16 +27,22 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.marcos.last.List.Record;
 import com.example.marcos.last.R;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
@@ -72,12 +79,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private TextView textView_Progress;
     AsyncHttpClient client;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+
 
 
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -92,6 +101,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+
+
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -99,72 +110,74 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 attemptLogin();
             }
         });
-        Button btonlogout = (Button) findViewById(R.id.buttonlogout);
-        btonlogout.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogout();
-            }
-        });
+//        Button btonlogout = (Button) findViewById(R.id.buttonlogout);
+//        btonlogout.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                attemptLogout();
+//            }
+//        });
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
         textView_Progress = (TextView)findViewById(R.id.textView_progress);
+
+
     }
 
-    private void attemptLogout() {
-        SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
-        String token = preferences.getString("token","false");
-        if (!token.equals("false")){
-            showProgress(true);
-            client = new AsyncHttpClient(true,80,443);
-            client.addHeader("Authorization","Bearer " + token);
-
-            client.post(getApplicationContext(), "https://www.trackmytruck.tk/api/logout",null,new AsyncHttpResponseHandler() {
-
-                @Override
-                public void onStart() {
-                    super.onStart();
-
-
-                }
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+//    private void attemptLogout() {
+//        SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+//        String token = preferences.getString("token","false");
+//        if (!token.equals("false")){
+//            showProgress(true);
+//            client = new AsyncHttpClient(true,80,443);
+//            client.addHeader("Authorization","Bearer " + token);
 //
-
-                    showProgress(false);
-                    try {
-                        String msg = new String(responseBody, "UTF-8");
-                        mostrarmensaje(msg);
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString("token","false");
-                    editor.commit();
-
-//                    Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_LONG).show();
-
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    showProgress(false);
+//            client.post(getApplicationContext(), "https://www.trackmytruck.tk/api/logout",null,new AsyncHttpResponseHandler() {
+//
+//                @Override
+//                public void onStart() {
+//                    super.onStart();
+//
+//
+//                }
+//
+//                @Override
+//                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+////
+//
+//                    showProgress(false);
 //                    try {
 //                        String msg = new String(responseBody, "UTF-8");
 //                        mostrarmensaje(msg);
 //                    } catch (UnsupportedEncodingException e) {
 //                        e.printStackTrace();
 //                    }
-                Toast.makeText(getApplicationContext(), "Error..", Toast.LENGTH_LONG).show();
-                }
-            });
-
-
-        }
-
-    }
+//                    SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = preferences.edit();
+//                    editor.putString("token","false");
+//                    editor.commit();
+//
+////                    Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_LONG).show();
+//
+//                }
+//
+//                @Override
+//                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+//                    showProgress(false);
+////                    try {
+////                        String msg = new String(responseBody, "UTF-8");
+////                        mostrarmensaje(msg);
+////                    } catch (UnsupportedEncodingException e) {
+////                        e.printStackTrace();
+////                    }
+//                Toast.makeText(getApplicationContext(), "Error..", Toast.LENGTH_LONG).show();
+//                }
+//            });
+//
+//
+//        }
+//
+//    }
 
     private void mostrarmensaje(String msg) {
         Toast.makeText(getApplicationContext(),msg,Toast.LENGTH_LONG).show();
@@ -191,7 +204,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         boolean cancel = false;
         View focusView = null;
-        textView_Progress.setText("Verificando Login...");
+        textView_Progress.setText(R.string.message_login);
         showProgress(true);
         client = new AsyncHttpClient(true,80,443);
 
@@ -210,7 +223,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        client.post(getApplicationContext(), "https://www.trackmytruck.tk/api/login", bodyjson, "application/json", new AsyncHttpResponseHandler() {
+        client.post(getApplicationContext(), getString(R.string.url_api_login), bodyjson, "application/json", new AsyncHttpResponseHandler() {
 
             @Override
             public void onStart() {
@@ -223,7 +236,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 //                            progressDialog.dismiss();
 
-                SharedPreferences preferences = getSharedPreferences("trips",MODE_PRIVATE);
+                SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf),MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
 
                 try {
@@ -234,7 +247,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 //                            String updated_at = (String) json.get("updated_at");
 //                            String created_at = (String) json.get("created_at");
 
-                    editor.putString("token",token);
+                    editor.putString(getString(R.string.token),token);
                     editor.commit();
                     client.addHeader("Authorization","Bearer " + token);
                 } catch (JSONException e) {
@@ -242,7 +255,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 }
 
 
-                client.get(getApplicationContext(), "https://www.trackmytruck.tk/api/user",new AsyncHttpResponseHandler() {
+                client.get(getApplicationContext(), getString(R.string.url_api_infor_user),new AsyncHttpResponseHandler() {
 
                     @Override
                     public void onStart() {
@@ -256,40 +269,42 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 //
 
 //                        showProgress(false);
-                        textView_Progress.setText("Obteniendo informacion de usuario...");
-                        SharedPreferences preferences = getSharedPreferences("user_inf",MODE_PRIVATE);
+                        textView_Progress.setText(R.string.message_login_user);
+
+                        SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf),MODE_PRIVATE);
                         SharedPreferences.Editor editor = preferences.edit();
                         JSONObject json = null;
                         try {
                             json = new JSONObject(new String(responseBody));
-                            Integer id = (Integer) json.get("id");
-                            String first_name = (String) json.get("first_name");
-                            String last_name = (String) json.get("last_name");
-                            String email = (String) json.get("email");
-                            String phone = (String) json.get("phone");
-                            Integer active = (Integer) json.get("active");
-                            Integer client_id = (Integer) json.get("client_id");
-                            String profile_image = (String) json.get("profile_image");
-                            String created_at = (String) json.get("created_at");
-                            String updated_at = (String) json.get("updated_at");
 
-                            editor.putString("id",String.valueOf(id));
-                            editor.putString("first_name",first_name);
-                            editor.putString("last_name",last_name);
-                            editor.putString("email",email);
-                            editor.putString("phone",phone);
-                            editor.putString("active",String.valueOf(active));
-                            editor.putString("client_id",String.valueOf(client_id));
-                            editor.putString("profile_image",profile_image);
-                            editor.putString("created_at",created_at);
-                            editor.putString("updated_at",updated_at);
+                            Integer id = (Integer) json.get(getString(R.string.id));
+                            String first_name = (String) json.get(getString(R.string.first_name));
+                            String last_name = (String) json.get(getString(R.string.last_name));
+                            String email = (String) json.get(getString(R.string.email));
+                            String phone = (String) json.get(getString(R.string.phone));
+                            Integer active = (Integer) json.get(getString(R.string.active));
+                            Integer client_id = (Integer) json.get(getString(R.string.client_id));
+                            String profile_image = (String) json.get(getString(R.string.profile_image));
+                            String created_at = (String) json.get(getString(R.string.created_at));
+                            String updated_at = (String) json.get(getString(R.string.updated_at));
+
+                            editor.putString(getString(R.string.id),String.valueOf(id));
+                            editor.putString(getString(R.string.first_name),first_name);
+                            editor.putString(getString(R.string.last_name),last_name);
+                            editor.putString(getString(R.string.email),email);
+                            editor.putString(getString(R.string.phone),phone);
+                            editor.putString(getString(R.string.active),String.valueOf(active));
+                            editor.putString(getString(R.string.client_id),String.valueOf(client_id));
+                            editor.putString(getString(R.string.profile_image),profile_image);
+                            editor.putString(getString(R.string.created_at),created_at);
+                            editor.putString(getString(R.string.updated_at),updated_at);
                             editor.commit();
 
 
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Toast.makeText(getApplicationContext(), "Datos de Usuarios recibidos...", Toast.LENGTH_LONG).show();
+                        //Toast.makeText(getApplicationContext(), "Datos de Usuarios recibidos...", Toast.LENGTH_LONG).show();
 //
                         startActivity(new Intent(LoginActivity.this,MainActivity.class));
 
@@ -521,3 +536,44 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 }
+// Ejemplo para estraer informacion de JSON
+//    String json_string = "{\n" +
+//            "\t\"id\" : 46,\n" +
+//            "\t\"nombre\" : \"Miguel\",\n" +
+//            "\t\"empresa\" : \"Autentia\",\n" +
+//            "\t\"vacaciones\":" +
+//            "[\n" +
+//            "\t\t\t\t\t{\n" +
+//            "\t\t\t\t\t\t\"inicio\" : \"Holaaaaa\",\n" +
+//            "\t\t\t\t\t\t\"fin\" : \"Pedrooooo\",\n" +
+//            "\t\t\t\t\t\t\"d\" : 5\n" +
+//            "\t\t\t\t\t},\n" +
+//            "\t\t\t\t\t{\n" +
+//            "\t\t\t\t\t\t\"inicio\" : \"23/08/2012\",\n" +
+//            "\t\t\t\t\t\t\"fin\" : \"29/08/2012\",\n" +
+//            "\t\t\t\t\t\t\"d\" : 88888888\n" +
+//            "\t\t\t\t\t}\n" +
+//            "\t\t\t\t]\n" +
+//            "}";
+//try {
+//final Gson gson = new Gson();
+//        JSONObject new_json = new JSONObject(json_string);
+//        JSONArray child_json = (JSONArray) new_json.get("vacaciones");
+//        String nam = (String) child_json.getJSONObject(0).get("inicio");
+//        String nam1 = (String) child_json.getJSONObject(0).get("fin");
+//        Integer nam2 = (Integer) child_json.getJSONObject(1).get("d");
+//        List<String> newList = new ArrayList<>();
+//        newList.add(nam);
+//        newList.add(nam1);
+//        newList.add(String.valueOf(nam2));
+//        if (newList.size() == 1){
+//        SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf),MODE_PRIVATE);
+//        SharedPreferences.Editor editor = preferences.edit();
+//        editor.putString("vac",nam);
+//        editor.putString("inicio",nam1);
+//        editor.putString("d",String.valueOf(nam2));
+//        }
+//
+//        } catch (JSONException e) {
+//        e.printStackTrace();
+//        }
