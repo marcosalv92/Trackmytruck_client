@@ -260,7 +260,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     @Override
                     public void onStart() {
                         super.onStart();
-
+                        textView_Progress.setText(R.string.message_login_user);
 
                     }
 
@@ -269,7 +269,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 //
 
 //                        showProgress(false);
-                        textView_Progress.setText(R.string.message_login_user);
+
 
                         SharedPreferences preferences = getSharedPreferences(getString(R.string.name_preference_user_inf),MODE_PRIVATE);
                         SharedPreferences.Editor editor = preferences.edit();
@@ -287,6 +287,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             String profile_image = (String) json.get(getString(R.string.profile_image));
                             String created_at = (String) json.get(getString(R.string.created_at));
                             String updated_at = (String) json.get(getString(R.string.updated_at));
+                            String RealProfileImage = (String) json.get(getString(R.string.RealProfileImage));
 
                             editor.putString(getString(R.string.id),String.valueOf(id));
                             editor.putString(getString(R.string.first_name),first_name);
@@ -298,6 +299,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             editor.putString(getString(R.string.profile_image),profile_image);
                             editor.putString(getString(R.string.created_at),created_at);
                             editor.putString(getString(R.string.updated_at),updated_at);
+                            editor.putString(getString(R.string.RealProfileImage),RealProfileImage);
                             editor.commit();
 
 
@@ -305,9 +307,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             e.printStackTrace();
                         }
                         //Toast.makeText(getApplicationContext(), "Datos de Usuarios recibidos...", Toast.LENGTH_LONG).show();
-//
-                        startActivity(new Intent(LoginActivity.this,MainActivity.class));
 
+
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         finish();
 //                    Toast.makeText(getApplicationContext(), "Logout", Toast.LENGTH_LONG).show();
 

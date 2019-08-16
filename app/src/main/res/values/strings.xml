@@ -74,6 +74,7 @@
     <string name="created_at">created_at</string>
     <string name="updated_at">updated_at</string>
     <string name="token">token</string>
+    <string name="spin_sel">spin_sel</string>
 
     <!-- Strings related to etiquetas SharePreference of trip  -->
 
@@ -85,6 +86,8 @@
     <string name="path">path</string>
     <string name="frec_dist">frec_dist</string>
     <string name="frec_t">frec_t</string>
+    <string name="RealProfileImage">RealProfileImage</string>
+
 
     <!-- Strings related to etiquetas SharePreference of State Conexion  -->
 
